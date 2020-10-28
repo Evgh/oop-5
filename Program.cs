@@ -4,15 +4,20 @@ namespace oop_5
 {
 
     interface IProduct
-    { 
-        void ToBuy()
-        {
-            Console.WriteLine("Товар куплен.");
-        }
+    {
+        bool IsSold { get; set;}
 
         void ToSell()
         {
-            Console.WriteLine("Товар продан.");
+            if (!IsSold)
+            {
+                Console.WriteLine("Товар продан.");
+                IsSold = true;
+            }
+            else
+            {
+                Console.WriteLine("Товар нельзя продать снова -- он уже продан.");
+            }            
         }
 
         void DoThing()
@@ -45,16 +50,31 @@ namespace oop_5
         {
             return isRunning;
         }
+
+        public override string ToString()
+        {
+            return $"Техника типа {GetType()}, работает ли: {isRunning}.";
+        }
     }
 
     abstract class TypingTech : Tech
     {
         public abstract bool InputText();
+        public override string ToString()
+        {
+            return $"Печатающее устройство типа {GetType()}, работает ли: {isRunning}.";
+        }
     }
 
-
     sealed class Scaner : Tech, IProduct
-    {   
+    {
+        bool _is_sold = false;
+        bool IProduct.IsSold
+        {
+            get => _is_sold;
+            set => _is_sold = value;
+        }
+
         public override bool IsItRunning()
         {
             if (base.isRunning)
@@ -77,11 +97,22 @@ namespace oop_5
         {
             Console.WriteLine("Сканер делает штуку по-интерфейсовски");
         }
-    }
 
+        public override string ToString()
+        {
+            return $"Сканер типа {GetType()}, работает ли: {isRunning}, продан ли: {_is_sold}.";
+        }
+    }
 
     sealed class Computer : TypingTech, IProduct
     {
+        bool _is_sold = false;
+        bool IProduct.IsSold
+        {
+            get => _is_sold;
+            set => _is_sold = value;
+        }
+
         public override bool IsItRunning()
         {
             if (base.isRunning)
@@ -100,9 +131,6 @@ namespace oop_5
             return true;
         }
 
-
-
-
         // Штуки.
         public void DoThing()
         {
@@ -112,10 +140,22 @@ namespace oop_5
         {
             Console.WriteLine("Компьютер делает штуку по-интерфейсовски");
         }
+
+        public override string ToString()
+        {
+            return $"Компьютер типа {GetType()}, работает ли: {isRunning}.";
+        }
     }
 
     sealed class Tablet : TypingTech, IProduct 
     {
+        bool _is_sold = false;
+        bool IProduct.IsSold
+        {
+            get => _is_sold;
+            set => _is_sold = value;
+        }
+
         public override bool IsItRunning()
         {
             if (base.isRunning)
@@ -128,7 +168,6 @@ namespace oop_5
             }
             return base.isRunning;
         }
-
 
         public override bool InputText()
         {
@@ -158,8 +197,13 @@ namespace oop_5
         }
         public override string ToString()
         {
-            return $"Сканер{GetHashCode()}";
+            return $"Планшет типа {GetType()}, работает ли: {isRunning}, продан ли: {_is_sold}.";
         }
+    }
+
+    class Printer
+    {
+        internal void IAmPrinting(Tech obj) => Console.WriteLine($"{obj.GetType()} | {obj}");
     }
 
 
@@ -167,14 +211,52 @@ namespace oop_5
     {
         static void Main(string[] args)
         {
-            Computer thing = new Computer();
-            thing.TurnOn();
+            var comp = new Computer();
+            var scan = new Scaner();
+            var tabl = new Tablet();
 
-            thing.DoThing();
-            ((IProduct)thing).DoThing();
+            IProduct icomp = null;
+            Tech ttabl = null;
 
-            Console.WriteLine(thing.IsItRunning());
+            if (comp is IProduct)
+            {
+                icomp = comp as IProduct;
+            }
 
+            if (tabl is Tech)
+            {
+                ttabl = tabl as Tech;
+            }
+
+
+            Console.WriteLine($"Работает ли сканер? - {scan.IsItRunning()}");
+            scan.TurnOn();
+            Console.WriteLine($"А теперь работает? - {scan.IsItRunning()}\n");
+
+
+            Console.WriteLine($"Работает ли комп? - {comp.IsItRunning()}");
+            comp.TurnOn();
+            Console.WriteLine($"Ну и ладно, что не работает, продадим");
+            icomp.ToSell();
+            Console.WriteLine($"Продали? {icomp.IsSold}");
+            Console.WriteLine($"Попробуем продать еще?");
+            ((IProduct)comp).ToSell();
+
+
+            Console.WriteLine($"\nВключим планшет");
+            ttabl.TurnOn();
+            if (ttabl.IsItRunning())
+            {
+                Console.WriteLine("Заработал");
+            }
+            else
+            {
+                Console.WriteLine("Почему-то не заработал");
+            }
+
+            Console.WriteLine("\n Теперь проверяем работу штук");
+            icomp.DoThing();
+            comp.DoThing();
         }
     }
 }
